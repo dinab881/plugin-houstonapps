@@ -57,14 +57,20 @@ class Team_Widget extends WP_Widget{
 	function widget($args, $instance) {
 		extract( $args );
 		$title = apply_filters('widget_title', $instance['title']);
-		$numberOfMembers = $instance['numberOfMembers'];
-		echo $before_widget;
-		if ( $title ) {
-			echo $before_title . $title . $after_title;
-		}
-		$this->getTeamMembers($numberOfMembers);
-		echo $after_widget;
-	}
+		$numberOfMembers = $instance['numberOfMembers'];?>
+
+         <!--TEAM-->
+		<div class="large-12 columns members">
+			<?php
+				echo $before_widget;
+				if ( $title ) {
+					echo $before_title . $title . $after_title;
+				}
+				$this->getTeamMembers($numberOfMembers);
+				echo $after_widget;?>
+		</div>
+
+	<?php}
 
 
 	function getTeamMembers($numberOfMembers) { //html
@@ -160,22 +166,34 @@ class Process_Widget extends WP_Widget{
 
 		extract( $args );
 		$title = apply_filters('widget_title', $instance['title']);
-		$numberOfItems = $instance['numberOfItems'];
-		echo $before_widget;
-		if (! empty( $title) ) {
-			echo $before_title . $title . $after_title;
-		}
+		$numberOfItems = $instance['numberOfItems'];?>
 
-		echo $after_widget;
-	}
+		<!--WORKING PROCESS-->
+		<div class="large-12 columns working_process">
+			<?php
+				echo $before_widget;
+				if (! empty( $title) ) {
+					echo $before_title . $title . $after_title;
+				}
+				$this->getProcessItems($numberOfItems);
+				echo $after_widget;?>
+		</div>
+
+	<?php }
 
 
-	function getTeamMembers($numberOfItems) { //html
+	function getProcessItems($numberOfItems) { //html
 		global $post;
 
 		$members = new WP_Query();
-		$members->query('post_type=team&posts_per_page=' . $numberOfItems );
-		if($members->found_posts > 0) {
+		$members->query('post_type=process&posts_per_page=' . $numberOfItems );
+		if($members->found_posts > 0) {?>
+
+
+
+
+			<?php
+
 
 			echo '<!--TEAM-->
 					<div class="large-12 columns members">

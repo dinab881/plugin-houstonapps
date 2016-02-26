@@ -20,7 +20,7 @@
  * @subpackage Houstonapps/admin
  * @author     Dina <dina881@gmail.com>
  */
-require_once('partials/custom-widgets.php');
+//require_once('partials/custom-widgets.php');
 class Houstonapps_Admin {
 
 	/**
@@ -102,21 +102,16 @@ class Houstonapps_Admin {
 	}
 
 
-	public function page_metabox() {
+	public function define_metaboxes() {
 
 		add_meta_box(
 			'metabox_id',
-			__( 'Add here your h1 header if it contains html  and h2 subheader', $this->plugin_name ),
+			__( 'Add here your h1 header if it contains html and h2 subheader', $this->plugin_name ),
 			array( $this, 'page_metabox_callback' ),
 			'page',
 			'normal',
 			'high'
 		);
-
-
-	}
-
-	public function process_metabox() {
 
 		add_meta_box(
 			'process_metabox_id',
@@ -127,14 +122,29 @@ class Houstonapps_Admin {
 			'high'
 		);
 
+		add_meta_box(
+			'technologies_metabox_id',
+			__( 'Add here class for icon', $this->plugin_name ),
+			array( $this, 'technologies_metabox_callback' ),
+			'technologies',
+			'normal',
+			'high'
+		);
 
 	}
 
+	/**
+	 * Metabox forms
+	 * @param $post
+	 */
+
 	public function page_metabox_callback($post) {
 
-		//retrieve the metadata values if they exist
-		$heading1 = get_post_meta( $post->ID, $this->plugin_name.'_heading1', true );
-		$heading2 = get_post_meta( $post->ID, $this->plugin_name.'_heading2', true );
+		$values = get_post_custom( $post->ID );
+		$heading1 = isset( $values[$this->plugin_name.'_heading1'] ) ?  $values[$this->plugin_name.'_heading1'][0]  : '';
+		$heading2 = isset( $values[$this->plugin_name.'_heading2'] ) ?  $values[$this->plugin_name.'_heading2'][0]  : '';
+
+		wp_nonce_field( $this->plugin_name, 'meta_box_nonce' );
 
 
 		_e('Please fill out the information below', $this->plugin_name);
@@ -152,10 +162,15 @@ class Houstonapps_Admin {
 
 	}
 
+
+
 	public function process_metabox_callback($post) {
 
-		//retrieve the metadata values if they exist
-		$process_icon_class = get_post_meta( $post->ID, $this->plugin_name.'_process_icon', true );
+
+		$values = get_post_custom( $post->ID );
+		$process_icon_class = isset( $values[$this->plugin_name.'_process_icon'] ) ?  $values[$this->plugin_name.'_process_icon'][0]  : '';
+
+		wp_nonce_field( $this->plugin_name, 'meta_box_nonce' );
 
 		?>
 		<div>
@@ -169,64 +184,128 @@ class Houstonapps_Admin {
 
 
 
+	public function technologies_metabox_callback($post) {
+
+		$values = get_post_custom( $post->ID );
+		$technologies_icon_class = isset( $values[$this->plugin_name.'_technologies_icon'] ) ?  $values[$this->plugin_name.'_technologies_icon'][0]  : '';
+		$check = isset( $values[$this->plugin_name.'_is_main'] ) ? esc_attr( $values[$this->plugin_name.'_is_main'][0] ) : '';
 
 
+		wp_nonce_field($this->plugin_name, 'meta_box_nonce' );
+		?>
+		<div>
+			<p><?php _e( 'Technologies icon class', $this->plugin_name );?>:</p>
+			<input class="widefat" name="<?php echo $this->plugin_name; ?>_technologies_icon" value="<?php echo esc_attr( $technologies_icon_class ); ?>"/>
+		</div>
+
+		<div>
+			<br/>
+			<?php _e( 'Is this technology primary?', $this->plugin_name );?>:
+			<input class="widefat" type="checkbox" name="<?php echo $this->plugin_name; ?>_is_main"  <?php checked( $check, 'on' ); ?>/>
+		</div>
+
+		<?php
+
+	}
+
+	/**
+	 * Save meta boxes
+	 * @param $post_id
+	 *
+	 */
 
 	public function page_metabox_save($post_id) {
 
-		$slug = 'page';
+		// Bail if we're doing an auto save
+		if( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+
+		// if our nonce isn't there, or we can't verify it, bail
+		if( !isset( $_POST['meta_box_nonce'] ) || !wp_verify_nonce( $_POST['meta_box_nonce'],  $this->plugin_name ) ) return;
+
+		// if our current user can't edit this post, bail
+		if( !current_user_can( 'edit_post',$post_id  ) ) return;
+
+		if ( 'page' != get_post($post_id)->post_type ) return;
+
+
 		$valid_data = array();
 
-
-
-		// If this isn't a 'page' post, don't update it.
-		/*if ( $slug != $post->post_type ) {
-			return;
-		}*/
-
-		// - Update the post's metadata.
 		if ( isset( $_POST[$this->plugin_name.'_heading1'] ) && !empty($_POST[$this->plugin_name.'_heading1']) ) {
 
-			$valid_data['heading1'] = wp_kses($_POST[$this->plugin_name.'_heading1'], array(
-				'strong' => array(),
-				'a' => array('href')
-			) );
-			update_post_meta( $post_id, $this->plugin_name.'_heading1',$valid_data['heading1']);
+				$valid_data['heading1'] = wp_kses($_POST[$this->plugin_name.'_heading1'], array(
+					'strong' => array(),
+					'a' => array('href')
+				) );
+				update_post_meta( $post_id, $this->plugin_name.'_heading1',$valid_data['heading1']);
 		}
 
 		if ( isset( $_POST[$this->plugin_name.'_heading2'] ) && !empty($_POST[$this->plugin_name.'_heading2']) ) {
 
-			$valid_data['heading2'] = wp_kses($_POST[$this->plugin_name.'_heading2'], array(
-				'strong' => array(),
-				'a' => array('href')
-			) );
-			update_post_meta( $post_id, $this->plugin_name.'_heading2',  $valid_data['heading2'] );
+				$valid_data['heading2'] = wp_kses($_POST[$this->plugin_name.'_heading2'], array(
+					'strong' => array(),
+					'a' => array('href')
+				) );
+				update_post_meta( $post_id, $this->plugin_name.'_heading2',  $valid_data['heading2'] );
 		}
+
+
 
 	}
 
 	public function process_metabox_save($post_id) {
 
-		$slug = 'page';
+		// Bail if we're doing an auto save
+		if( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+
+		// if our nonce isn't there, or we can't verify it, bail
+		if( !isset( $_POST['meta_box_nonce'] ) || !wp_verify_nonce( $_POST['meta_box_nonce'],  $this->plugin_name ) ) return;
+
+		// if our current user can't edit this post, bail
+		if( !current_user_can( 'edit_post',$post_id  ) ) return;
+
+		if ( 'process' != get_post($post_id)->post_type ) return;
+
 		$valid_data = array();
 
-
-
-		// If this isn't a 'page' post, don't update it.
-		/*if ( $slug != $post->post_type ) {
-			return;
-		}*/
-
-		// - Update the post's metadata.
-		if ( isset( $_POST[$this->plugin_name.'_process_icon'] ) && !empty($_POST[$this->plugin_name.'_process_icon']) ) {
-
-			$valid_data['class_icon'] = sanitize_text_field($_POST[$this->plugin_name.'_process_icon']);
-			update_post_meta( $post_id, $this->plugin_name.'_process_icon',$valid_data['class_icon']);
+		if ( isset( $_POST[ $this->plugin_name . '_process_icon' ] ) && ! empty( $_POST[ $this->plugin_name . '_process_icon' ] ) ) {
+				$valid_data['class_icon'] = sanitize_text_field( $_POST[ $this->plugin_name . '_process_icon' ] );
+				update_post_meta( $post_id, $this->plugin_name . '_process_icon', $valid_data['class_icon'] );
 		}
 
 	}
 
 
+	public function technologies_metabox_save($post_id) {
+
+		// Bail if we're doing an auto save
+		if( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+
+		// if our nonce isn't there, or we can't verify it, bail
+		if( !isset( $_POST['meta_box_nonce'] ) || !wp_verify_nonce( $_POST['meta_box_nonce'], $this->plugin_name ) ) return;
+
+		// if our current user can't edit this post, bail
+		if( !current_user_can( 'edit_post',$post_id  ) ) return;
+
+		if ( 'technologies' != get_post($post_id)->post_type ) return;
+
+
+		$valid_data = array();
+
+		if ( isset( $_POST[ $this->plugin_name . '_technologies_icon' ] ) && ! empty( $_POST[ $this->plugin_name . '_technologies_icon' ] ) ) {
+				$valid_data['class_icon'] = sanitize_text_field( $_POST[ $this->plugin_name . '_technologies_icon' ] );
+				update_post_meta( $post_id, $this->plugin_name . '_technologies_icon', $valid_data['class_icon'] );
+		}
+
+		$chk = isset( $_POST[ $this->plugin_name . '_is_main' ] ) && $_POST[ $this->plugin_name . '_is_main' ] ? 'on' : 'off';
+		update_post_meta( $post_id, $this->plugin_name . '_is_main', $chk );
+
+
+	}
+
+
+	/**
+	 * Create custom post types
+	 */
 	public function add_custom_post_types() {
 
 		/* Team post type*/
@@ -368,12 +447,6 @@ class Houstonapps_Admin {
 
 	}
 
-	public function add_custom_widgets(){
-
-
-
-		register_widget('Team_Widget');
-	}
 
 
 }

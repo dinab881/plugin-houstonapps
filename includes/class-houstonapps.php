@@ -154,18 +154,13 @@ class Houstonapps {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
-		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'page_metabox' );
-		$this->loader->add_action( 'save_post', $plugin_admin, 'page_metabox_save' );
+		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'define_metaboxes' );
 
-		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'process_metabox' );
+		$this->loader->add_action( 'save_post', $plugin_admin, 'page_metabox_save' );
 		$this->loader->add_action( 'save_post', $plugin_admin, 'process_metabox_save' );
+		$this->loader->add_action( 'save_post', $plugin_admin, 'technologies_metabox_save' );
 
 		$this->loader->add_action( 'init', $plugin_admin, 'add_custom_post_types' );
-		$this->loader->add_action( 'widgets_init', $plugin_admin, 'add_custom_widgets' );
-
-
-
-
 
 	}
 
