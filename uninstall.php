@@ -28,4 +28,37 @@
 // If uninstall not called from WordPress, then exit.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
+
+	global $wpdb;
+
+	$cpts = array('team','technologies','contacts','process');
+	foreach($cpts as $key => $post_type){
+
+		//Returns 100 post ids from a post type.
+		$limit = 100;
+		$limit = $limit ? " LIMIT {$limit}" : '';
+		$query = "SELECT p.ID FROM $wpdb->posts AS p WHERE p.post_type IN (%s){$limit}";
+		$db_post_ids = $wpdb->get_col( $wpdb->prepare( $query, $post_type ) );
+
+		if ( !empty( $db_post_ids ) ) {
+			$deleted = 0;
+			foreach ( $db_post_ids as $post_id ) {
+				$del = wp_delete_post( $post_id );
+				if ( false !== $del ) {
+					++$deleted;
+				}
+			}
+
+		}
+
+	}
+
+	// Delete options from default post types
+	$options = arry('houstonapps_heading1','houstonapps_heading2');
+	foreach($options as $k => $val){
+		delete_option( $val );
+	}
+
+
+
 }

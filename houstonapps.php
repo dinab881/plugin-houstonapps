@@ -15,7 +15,7 @@
  * @wordpress-plugin
  * Plugin Name:       Plugin for houstonapps theme
  * Plugin URI:        https://github.com/dinab881/plugin-houstonapps
- * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
+ * Description:       Adds custom post types and special meta boxes to hustonapps theme
  * Version:           1.0.0
  * Author:            Dina
  * Author URI:        https://github.com/dinab881
